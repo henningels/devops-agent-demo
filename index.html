@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookStore Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; }
+        header { background: #232f3e; color: white; padding: 1rem 2rem; display: flex; align-items: center; gap: 1rem; }
+        header h1 { font-size: 1.5rem; }
+        header span { color: #ff9900; font-weight: bold; }
+        .subtitle { color: #aaa; font-size: 0.8rem; margin-top: 0.5rem; }
+        main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .card:hover { transform: translateY(-4px); }
+        .card img { width: 100%; height: 300px; object-fit: contain; background: #fafafa; padding: 1rem; }
+        .card-body { padding: 1rem; }
+        .card-body h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+        .card-body .author { color: #666; font-size: 0.85rem; margin-bottom: 0.75rem; }
+        .card-body .price { color: #b12704; font-size: 1.2rem; font-weight: bold; }
+        .btn { display: inline-block; margin-top: 0.75rem; padding: 0.5rem 1rem; background: #ff9900; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+        .btn:hover { background: #e88b00; }
+        .loading { text-align: center; padding: 3rem; color: #666; }
+        .arch { background: #232f3e; color: #ccc; padding: 1rem 2rem; text-align: center; font-size: 0.75rem; margin-top: 3rem; border-radius: 8px; }
+        .arch span { color: #ff9900; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1><span>&#128218;</span> BookStore <span>Demo</span></h1>
+            <div class="subtitle">Powered by AWS Serverless: S3 + API Gateway + Lambda + DynamoDB</div>
+        </div>
+    </header>
+    <main>
+        <div class="grid" id="books">
+            <div class="loading">Loading books...</div>
+        </div>
+        <div class="arch">
+            Architecture: <span>S3</span> (static hosting) &rarr; <span>API Gateway</span> &rarr; <span>Lambda</span> (Python) &rarr; <span>DynamoDB</span>
+        </div>
+    </main>
+    <script>
+        const API = 'https://tm7id6cvkj.execute-api.us-west-2.amazonaws.com/prod/books';
+        fetch(API)
+            .then(r => r.json())
+            .then(books => {
+                document.getElementById('books').innerHTML = books.map(b => `
+                    <div class="card">
+                        <img src="${b.cover}" alt="${b.title}">
+                        <div class="card-body">
+                            <h3>${b.title}</h3>
+                            <div class="author">${b.author}</div>
+                            <div class="price">$${b.price.toFixed(2)}</div>
+                            <button class="btn">Add to Cart</button>
+                        </div>
+                    </div>
+                `).join('');
+            })
+            .catch(() => {
+                document.getElementById('books').innerHTML = '<div class="loading">Failed to load books.</div>';
+            });
+    </script>
+</body>
+</html>
