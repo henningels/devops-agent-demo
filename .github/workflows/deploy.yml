@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -24,6 +26,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy CloudFormation stack
+        if: ${{ github.event_name == 'push' && contains(join(github.event.commits.*.modified, ','), 'bookstore-stack.yaml') || contains(join(github.event.commits.*.added, ','), 'bookstore-stack.yaml') }}
         run: |
           aws cloudformation deploy \
             --template-file bookstore-stack.yaml \
@@ -32,6 +35,7 @@ jobs:
             --no-fail-on-empty-changeset
 
       - name: Package and deploy Lambda
+        if: ${{ contains(join(github.event.commits.*.modified, ','), 'lambda_function.py') || contains(join(github.event.commits.*.added, ','), 'lambda_function.py') }}
         run: |
           zip function.zip lambda_function.py
           aws lambda update-function-code \
@@ -39,5 +43,5 @@ jobs:
             --zip-file fileb://function.zip
 
       - name: Sync frontend to S3
-        run: |
-          aws s3 cp index.html s3://$S3_BUCKET/index.html
+        if: ${{ contains(join(github.event.commits.*.modified, ','), 'index.html') || contains(join(github.event.commits.*.added, ','), 'index.html') }}
+        run: aws s3 cp index.html s3://$S3_BUCKET/index.html
