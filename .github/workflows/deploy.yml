@@ -6,7 +6,6 @@ on:
 
 env:
   AWS_REGION: us-west-2
-  STACK_NAME: bookstore-stack
   FUNCTION_NAME: GetBooks
   S3_BUCKET: bookstore-demo-918183255158
 
@@ -15,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -25,17 +22,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Deploy CloudFormation stack
-        if: ${{ contains(github.event.head_commit.modified, 'bookstore-stack.yaml') || contains(github.event.head_commit.added, 'bookstore-stack.yaml') }}
-        run: |
-          aws cloudformation deploy \
-            --template-file bookstore-stack.yaml \
-            --stack-name $STACK_NAME \
-            --capabilities CAPABILITY_NAMED_IAM \
-            --no-fail-on-empty-changeset
-
-      - name: Package and deploy Lambda
-        if: ${{ contains(github.event.head_commit.modified, 'lambda_function.py') || contains(github.event.head_commit.added, 'lambda_function.py') }}
+      - name: Deploy Lambda
         run: |
           zip function.zip lambda_function.py
           aws lambda update-function-code \
@@ -43,5 +30,4 @@ jobs:
             --zip-file fileb://function.zip
 
       - name: Sync frontend to S3
-        if: ${{ contains(github.event.head_commit.modified, 'index.html') || contains(github.event.head_commit.added, 'index.html') }}
         run: aws s3 cp index.html s3://$S3_BUCKET/index.html
