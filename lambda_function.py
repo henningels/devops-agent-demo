@@ -5,7 +5,7 @@ dynamodb = boto3.resource('dynamodb', region_name='us-west-2')
 table = dynamodb.Table('Books')
 
 def handler(event, context):
-    # raise Exception("Simulated 500 error-1")
+    raise Exception("Simulated 500 error-1")
     response = table.scan()
     books = response.get('Items', [])
     for book in books:
